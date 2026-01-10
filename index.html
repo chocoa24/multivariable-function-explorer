@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multivariable Function Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ECE7E1 0%, #DBD4CE 50%, #DDD3D2 100%);
+            min-height: 100vh;
+        }
+        .btn-primary {
+            background-color: #BBAEA5;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: white;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+        }
+        .preset-btn:hover {
+            background-color: #ECE7E1;
+            border-color: #BBAEA5;
+        }
+        .info-card {
+            background: linear-gradient(135deg, #ECE7E1 0%, #DBD4CE 100%);
+            border: 1px solid #BBAEA5;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="p-6 text-white" style="background: linear-gradient(135deg, #BBAEA5 0%, #B3B3B3 50%, #DBD4CE 100%);">
+                <h1 class="text-3xl font-bold">Multivariable Function Explorer</h1>
+                <p class="mt-2 opacity-90">Visualize and explore functions of two or three variables</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Number of Variables</label>
+                        <div class="flex gap-2">
+                            <button id="var2Btn" onclick="setVariables(2)" class="flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary">
+                                f(x, y)
+                            </button>
+                            <button id="var3Btn" onclick="setVariables(3)" class="flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary">
+                                f(x, y, z)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Function</label>
+                        <input type="text" id="functionInput" value="x^2 + y^2" placeholder="e.g., x^2 + y^2"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent">
+                        
+                        <div class="mt-3">
+                            <p class="text-xs font-medium text-gray-600 mb-2">Quick Examples:</p>
+                            <div id="presetButtons" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <div id="plotTypeGroup" class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Visualization Type</label>
+                        <div class="flex gap-2">
+                            <button id="surfaceBtn" onclick="setPlotType('surface')" class="flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary">
+                                3D Surface
+                            </button>
+                            <button id="contourBtn" onclick="setPlotType('contour')" class="flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary">
+                                2D Contour
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">Domain Range</label>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-gray-600">x min</label>
+                                    <input type="number" id="xMin" value="-5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">x max</label>
+                                    <input type="number" id="xMax" value="5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-gray-600">y min</label>
+                                    <input type="number" id="yMin" value="-5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">y max</label>
+                                    <input type="number" id="yMax" value="5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                </div>
+                            </div>
+                            <div id="zRangeInputs" style="display: none;">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs text-gray-600">z min</label>
+                                        <input type="number" id="zMin" value="-5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-600">z max</label>
+                                        <input type="number" id="zMax" value="5" class="w-full px-2 py-1 text-sm border border-gray-300 rounded">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="generatePlot()" class="w-full py-3 px-4 rounded-lg font-semibold text-white transition" 
+                        style="background: linear-gradient(135deg, #BBAEA5 0%, #B3B3B3 50%, #DBD4CE 100%);">
+                        Generate Plot
+                    </button>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div id="errorDiv"></div>
+                    <div id="plotDiv" class="bg-white border-2 border-gray-200 rounded-xl" style="height: 500px;"></div>
+
+                    <!-- Domain and Range -->
+                    <div class="p-6 rounded-xl info-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Domain and Range</h3>
+                        <div id="domainRangeContent" class="text-sm text-gray-700 space-y-2"></div>
+                    </div>
+
+                    <!-- Partial Derivatives -->
+                    <div class="p-6 rounded-xl info-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Partial Derivatives (Rate of Change)</h3>
+                        <div class="mb-3">
+                            <label class="text-sm font-medium text-gray-700 mb-2 block">Evaluate at point:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="number" id="pdX" value="1" placeholder="x" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <input type="number" id="pdY" value="1" placeholder="y" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                <input type="number" id="pdZ" value="0" placeholder="z" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" style="display: none;">
+                            </div>
+                            <button onclick="calculatePartialDerivatives()" class="mt-2 w-full py-2 px-4 rounded-lg font-semibold text-white transition" style="background-color: #BBAEA5;">
+                                Calculate
+                            </button>
+                        </div>
+                        <div id="partialDerivativesContent" class="text-sm text-gray-700"></div>
+                    </div>
+
+                    <!-- Gradient and Steepest Ascent -->
+                    <div class="p-6 rounded-xl info-card">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Gradient and Steepest Ascent</h3>
+                        <div id="gradientContent" class="text-sm text-gray-700"></div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="p-6 rounded-xl border" style="background-color: #DDD3D2; border-color: #B3B3B3;">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Understanding the Visualization</h3>
+                        <p id="infoText" class="text-gray-700 text-sm leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-xl p-6 shadow-lg">
+            <h3 class="font-semibold text-gray-800 mb-3">Tips and Function Syntax</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                <div><strong>Operations:</strong> Use ^ for powers (x^2), * for multiplication, +, -, / for basic operations</div>
+                <div><strong>Math functions:</strong> sin(), cos(), exp(), sqrt(), abs(), log()</div>
+                <div><strong>Examples (2D):</strong> x*y, sin(x)*cos(y), x^3 - 3*x*y^2</div>
+                <div><strong>Examples (3D):</strong> x^2 + y^2 - z^2, sin(x)*cos(y)*sin(z)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentVariables = 2;
+        var currentPlotType = 'surface';
+
+        var presets = {
+            2: [
+                { name: 'Paraboloid', func: 'x^2 + y^2' },
+                { name: 'Saddle', func: 'x^2 - y^2' },
+                { name: 'Sine Wave', func: 'sin(x) * cos(y)' },
+                { name: 'Gaussian', func: 'exp(-(x^2 + y^2)/2)' },
+                { name: 'Ripple', func: 'sin(sqrt(x^2 + y^2))' }
+            ],
+            3: [
+                { name: 'Sphere', func: 'x^2 + y^2 + z^2' },
+                { name: 'Hyperboloid', func: 'x^2 + y^2 - z^2' },
+                { name: 'Linear', func: 'x + y + z' },
+                { name: '3D Waves', func: 'sin(x) + cos(y) + sin(z)' }
+            ]
+        };
+
+        var infoTexts = {
+            surface2D: 'The 3D surface plot shows how the function value (height) changes across the xy-plane. Each point on the surface represents the output f(x,y) for coordinates (x,y). You can rotate by dragging, zoom by scrolling, and pan by holding shift while dragging.',
+            contour2D: 'The 2D contour plot displays level curves—lines where the function has the same value. Each line connects points with equal function values. Think of it like a topographic map viewed from above.',
+            scatter3D: 'For three-variable functions f(x,y,z), we show a 3D scatter plot of sampled points colored by their function values. Each point represents a location (x,y,z) in space. You can rotate and interact with the plot.'
+        };
+
+        document.querySelectorAll('input[type="number"]').forEach(function(input) {
+            input.addEventListener('blur', function() {
+                if (this.value && !isNaN(this.value)) {
+                    this.value = parseFloat(this.value).toString();
+                }
+            });
+        });
+
+        function convertFunction(funcStr) {
+            var converted = funcStr.replace(/\^/g, '**');
+            var mathFuncs = ['sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'abs', 'pow', 'floor', 'ceil', 'round'];
+            for (var i = 0; i < mathFuncs.length; i++) {
+                var func = mathFuncs[i];
+                var regex = new RegExp('\\b' + func + '\\(', 'g');
+                converted = converted.replace(regex, 'Math.' + func + '(');
+            }
+            return converted;
+        }
+
+        function evaluateFunction(funcStr, x, y, z) {
+            if (z === undefined) z = 0;
+            try {
+                var converted = convertFunction(funcStr);
+                return Function('x', 'y', 'z', 'return ' + converted)(x, y, z);
+            } catch (e) {
+                throw new Error('Invalid function');
+            }
+        }
+
+        function numericalPartialDerivative(funcStr, varIndex, x, y, z) {
+            var h = 0.00001;
+            var vars = [x, y, z];
+            var varsPlus = [x, y, z];
+            var varsMinus = [x, y, z];
+            varsPlus[varIndex] += h;
+            varsMinus[varIndex] -= h;
+            
+            var fPlus = evaluateFunction(funcStr, varsPlus[0], varsPlus[1], varsPlus[2]);
+            var fMinus = evaluateFunction(funcStr, varsMinus[0], varsMinus[1], varsMinus[2]);
+            
+            var derivative = (fPlus - fMinus) / (2 * h);
+            
+            // Round to remove numerical noise
+            return Math.round(derivative * 10000) / 10000;
+        }
+
+        function updateDomainRange() {
+            var xMin = parseFloat(document.getElementById('xMin').value);
+            var xMax = parseFloat(document.getElementById('xMax').value);
+            var yMin = parseFloat(document.getElementById('yMin').value);
+            var yMax = parseFloat(document.getElementById('yMax').value);
+            var zMin = parseFloat(document.getElementById('zMin').value);
+            var zMax = parseFloat(document.getElementById('zMax').value);
+
+            var content = document.getElementById('domainRangeContent');
+            
+            if (currentVariables === 2) {
+                content.innerHTML = '<div><strong>Domain:</strong> D = {(x, y) | ' + xMin + ' ≤ x ≤ ' + xMax + ', ' + yMin + ' ≤ y ≤ ' + yMax + '}</div>' +
+                    '<div class="mt-2"><strong>Range:</strong> The set of all possible output values f(x, y) over the domain</div>' +
+                    '<div class="mt-2 text-xs text-gray-600">The domain represents all valid input pairs (x, y), while the range represents all possible outputs.</div>';
+            } else {
+                content.innerHTML = '<div><strong>Domain:</strong> D = {(x, y, z) | ' + xMin + ' ≤ x ≤ ' + xMax + ', ' + yMin + ' ≤ y ≤ ' + yMax + ', ' + zMin + ' ≤ z ≤ ' + zMax + '}</div>' +
+                    '<div class="mt-2"><strong>Range:</strong> The set of all possible output values f(x, y, z) over the domain</div>' +
+                    '<div class="mt-2 text-xs text-gray-600">The domain represents all valid input triples (x, y, z), while the range represents all possible outputs.</div>';
+            }
+        }
+
+        function calculatePartialDerivatives() {
+            var funcStr = document.getElementById('functionInput').value.trim();
+            if (!funcStr) {
+                showError('Please enter a function first');
+                return;
+            }
+
+            var x = parseFloat(document.getElementById('pdX').value) || 0;
+            var y = parseFloat(document.getElementById('pdY').value) || 0;
+            var z = parseFloat(document.getElementById('pdZ').value) || 0;
+
+            try {
+                var fx = numericalPartialDerivative(funcStr, 0, x, y, z);
+                var fy = numericalPartialDerivative(funcStr, 1, x, y, z);
+                
+                var content = '<div class="space-y-3">';
+                
+                if (currentVariables === 2) {
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">∂f/∂x at (' + x + ', ' + y + ') = ' + fx.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">Rate of change in x-direction (holding y constant)</div>';
+                    content += '</div>';
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">∂f/∂y at (' + x + ', ' + y + ') = ' + fy.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">Rate of change in y-direction (holding x constant)</div>';
+                    content += '</div>';
+                } else {
+                    var fz = numericalPartialDerivative(funcStr, 2, x, y, z);
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">∂f/∂x at (' + x + ', ' + y + ', ' + z + ') = ' + fx.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">Rate of change in x-direction</div>';
+                    content += '</div>';
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">∂f/∂y at (' + x + ', ' + y + ', ' + z + ') = ' + fy.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">Rate of change in y-direction</div>';
+                    content += '</div>';
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">∂f/∂z at (' + x + ', ' + y + ', ' + z + ') = ' + fz.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">Rate of change in z-direction</div>';
+                    content += '</div>';
+                }
+                
+                content += '<div class="mt-3 text-xs text-gray-600 italic">';
+                content += 'Partial derivatives measure how fast the function changes when moving in a single coordinate direction.';
+                content += '</div>';
+                content += '</div>';
+                
+                document.getElementById('partialDerivativesContent').innerHTML = content;
+                calculateGradient(funcStr, x, y, z, fx, fy);
+                
+            } catch (e) {
+                showError('Error calculating derivatives: ' + e.message);
+            }
+        }
+
+        function calculateGradient(funcStr, x, y, z, fx, fy) {
+            try {
+                var content = '<div class="space-y-3">';
+                
+                if (currentVariables === 2) {
+                    var magnitude = Math.sqrt(fx * fx + fy * fy);
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">Gradient Vector:</div>';
+                    content += '<div class="text-lg mt-1">∇f(' + x + ', ' + y + ') = ⟨' + fx.toFixed(4) + ', ' + fy.toFixed(4) + '⟩</div>';
+                    content += '</div>';
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">Magnitude of Gradient:</div>';
+                    content += '<div class="text-lg mt-1">||∇f|| = ' + magnitude.toFixed(4) + '</div>';
+                    content += '<div class="text-xs text-gray-600 mt-1">This is the maximum rate of change</div>';
+                    content += '</div>';
+                    
+                    if (magnitude > 0.0001) {
+                        var unitX = fx / magnitude;
+                        var unitY = fy / magnitude;
+                        
+                        content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                        content += '<div class="font-semibold text-gray-800">Direction of Steepest Ascent:</div>';
+                        content += '<div class="text-lg mt-1">u = ⟨' + unitX.toFixed(4) + ', ' + unitY.toFixed(4) + '⟩</div>';
+                        content += '<div class="text-xs text-gray-600 mt-1">Unit vector pointing in the direction of fastest increase</div>';
+                        content += '</div>';
+                        
+                        content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                        content += '<div class="font-semibold text-gray-800">Direction of Steepest Descent:</div>';
+                        content += '<div class="text-lg mt-1">-u = ⟨' + (-unitX).toFixed(4) + ', ' + (-unitY).toFixed(4) + '⟩</div>';
+                        content += '<div class="text-xs text-gray-600 mt-1">Opposite direction (fastest decrease)</div>';
+                        content += '</div>';
+                    } else {
+                        content += '<div class="bg-yellow-50 p-3 rounded border border-yellow-300">';
+                        content += '<div class="text-sm text-yellow-800">The gradient is approximately zero at this point. This may be a critical point (local max, min, or saddle point).</div>';
+                        content += '</div>';
+                    }
+                    
+                } else {
+                    var fz = numericalPartialDerivative(funcStr, 2, x, y, z);
+                    var magnitude = Math.sqrt(fx * fx + fy * fy + fz * fz);
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">Gradient Vector:</div>';
+                    content += '<div class="text-lg mt-1">∇f(' + x + ', ' + y + ', ' + z + ') = ⟨' + fx.toFixed(4) + ', ' + fy.toFixed(4) + ', ' + fz.toFixed(4) + '⟩</div>';
+                    content += '</div>';
+                    
+                    content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                    content += '<div class="font-semibold text-gray-800">Magnitude of Gradient:</div>';
+                    content += '<div class="text-lg mt-1">||∇f|| = ' + magnitude.toFixed(4) + '</div>';
+                    content += '</div>';
+                    
+                    if (magnitude > 0.0001) {
+                        var unitX = fx / magnitude;
+                        var unitY = fy / magnitude;
+                        var unitZ = fz / magnitude;
+                        
+                        content += '<div class="bg-white p-3 rounded border border-gray-300">';
+                        content += '<div class="font-semibold text-gray-800">Direction of Steepest Ascent:</div>';
+                        content += '<div class="text-lg mt-1">u = ⟨' + unitX.toFixed(4) + ', ' + unitY.toFixed(4) + ', ' + unitZ.toFixed(4) + '⟩</div>';
+                        content += '</div>';
+                    }
+                }
+                
+                content += '<div class="mt-3 text-xs text-gray-600 italic">';
+                content += 'The gradient vector always points in the direction of steepest ascent, and its magnitude gives the rate of increase in that direction.';
+                content += '</div>';
+                content += '</div>';
+                
+                document.getElementById('gradientContent').innerHTML = content;
+                
+            } catch (e) {
+                showError('Error calculating gradient: ' + e.message);
+            }
+        }
+
+        function setVariables(n) {
+            currentVariables = n;
+            var var2 = document.getElementById('var2Btn');
+            var var3 = document.getElementById('var3Btn');
+            
+            if (n === 2) {
+                var2.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary';
+                var3.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary';
+            } else {
+                var2.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary';
+                var3.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary';
+            }
+            
+            document.getElementById('zRangeInputs').style.display = n === 3 ? 'block' : 'none';
+            document.getElementById('pdZ').style.display = n === 3 ? 'block' : 'none';
+            document.getElementById('plotTypeGroup').style.display = n === 2 ? 'block' : 'none';
+            
+            updatePresets();
+            updateInfoText();
+            updateDomainRange();
+        }
+
+        function setPlotType(type) {
+            currentPlotType = type;
+            var surface = document.getElementById('surfaceBtn');
+            var contour = document.getElementById('contourBtn');
+            
+            if (type === 'surface') {
+                surface.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary';
+                contour.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary';
+            } else {
+                surface.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-secondary';
+                contour.className = 'flex-1 py-2 px-4 rounded-lg font-medium transition btn-primary';
+            }
+            updateInfoText();
+        }
+
+        function updatePresets() {
+            var container = document.getElementById('presetButtons');
+            container.innerHTML = '';
+            presets[currentVariables].forEach(function(preset) {
+                var btn = document.createElement('button');
+                btn.className = 'text-xs px-3 py-1 bg-white border border-gray-300 rounded-full transition preset-btn';
+                btn.textContent = preset.name;
+                btn.onclick = function() {
+                    document.getElementById('functionInput').value = preset.func;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function updateInfoText() {
+            var infoDiv = document.getElementById('infoText');
+            if (currentVariables === 2) {
+                infoDiv.textContent = currentPlotType === 'surface' ? infoTexts.surface2D : infoTexts.contour2D;
+            } else {
+                infoDiv.textContent = infoTexts.scatter3D;
+            }
+        }
+
+        function showError(message) {
+            var errorDiv = document.getElementById('errorDiv');
+            errorDiv.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">' + message + '</div>';
+            setTimeout(function() { errorDiv.innerHTML = ''; }, 5000);
+        }
+
+        function generatePlot() {
+            var funcStr = document.getElementById('functionInput').value.trim();
+            if (!funcStr) {
+                showError('Please enter a function');
+                return;
+            }
+
+            var xMin = parseFloat(document.getElementById('xMin').value);
+            var xMax = parseFloat(document.getElementById('xMax').value);
+            var yMin = parseFloat(document.getElementById('yMin').value);
+            var yMax = parseFloat(document.getElementById('yMax').value);
+            var zMin = parseFloat(document.getElementById('zMin').value);
+            var zMax = parseFloat(document.getElementById('zMax').value);
+
+            document.getElementById('errorDiv').innerHTML = '';
+            updateDomainRange();
+
+            try {
+                if (currentVariables === 2) {
+                    if (currentPlotType === 'surface') {
+                        generateSurfacePlot(funcStr, xMin, xMax, yMin, yMax);
+                    } else {
+                        generateContourPlot(funcStr, xMin, xMax, yMin, yMax);
+                    }
+                } else {
+                    generateScatter3D(funcStr, xMin, xMax, yMin, yMax, zMin, zMax);
+                }
+            } catch (e) {
+                showError('Error generating plot: ' + e.message);
+            }
+        }
+
+        function generateSurfacePlot(funcStr, xMin, xMax, yMin, yMax) {
+            var resolution = 60;
+            var xStep = (xMax - xMin) / resolution;
+            var yStep = (yMax - yMin) / resolution;
+
+            var xVals = [];
+            var yVals = [];
+            var zVals = [];
+
+            for (var i = 0; i <= resolution; i++) {
+                var y = yMin + i * yStep;
+                yVals.push(y);
+                var row = [];
+                for (var j = 0; j <= resolution; j++) {
+                    var x = xMin + j * xStep;
+                    if (i === 0) xVals.push(x);
+                    try {
+                        var z = evaluateFunction(funcStr, x, y);
+                        row.push(isFinite(z) ? z : null);
+                    } catch (e) {
+                        row.push(null);
+                    }
+                }
+                zVals.push(row);
+            }
+
+            var data = [{
+                type: 'surface',
+                x: xVals,
+                y: yVals,
+                z: zVals,
+                colorscale: 'Viridis',
+                showscale: true,
+                contours: {
+                    z: {
+                        show: true,
+                        usecolormap: true,
+                        highlightcolor: "#42f462",
+                        project: { z: true }
+                    }
+                }
+            }];
+
+            var layout = {
+                scene: {
+                    xaxis: { title: 'x', gridcolor: '#ddd', showgrid: true },
+                    yaxis: { title: 'y', gridcolor: '#ddd', showgrid: true },
+                    zaxis: { title: 'f(x, y)', gridcolor: '#ddd', showgrid: true },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 1.3 }
+                    }
+                },
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('plotDiv', data, layout, { responsive: true });
+        }
+
+        function generateContourPlot(funcStr, xMin, xMax, yMin, yMax) {
+            var resolution = 100;
+            var xStep = (xMax - xMin) / resolution;
+            var yStep = (yMax - yMin) / resolution;
+
+            var xVals = [];
+            var yVals = [];
+            var zVals = [];
+
+            for (var i = 0; i <= resolution; i++) {
+                var x = xMin + i * xStep;
+                xVals.push(x);
+                var row = [];
+                for (var j = 0; j <= resolution; j++) {
+                    var y = yMin + j * yStep;
+                    if (i === 0) yVals.push(y);
+                    try {
+                        var z = evaluateFunction(funcStr, x, y);
+                        row.push(isFinite(z) ? z : null);
+                    } catch (e) {
+                        row.push(null);
+                    }
+                }
+                zVals.push(row);
+            }
+
+            var data = [{
+                type: 'contour',
+                x: xVals,
+                y: yVals,
+                z: zVals,
+                colorscale: 'Viridis',
+                showscale: false,
+                contours: {
+                    coloring: 'lines',
+                    showlabels: true,
+                    labelfont: {
+                        size: 11,
+                        color: '#1e40af'
+                    }
+                },
+                line: {
+                    width: 2.5,
+                    color: '#2563eb',
+                    smoothing: 0.85
+                },
+                ncontours: 25
+            }];
+
+            var layout = {
+                xaxis: { 
+                    title: 'x',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb',
+                    zeroline: true,
+                    zerolinecolor: '#374151',
+                    zerolinewidth: 2
+                },
+                yaxis: { 
+                    title: 'y',
+                    showgrid: true,
+                    gridcolor: '#e5e7eb',
+                    zeroline: true,
+                    zerolinecolor: '#374151',
+                    zerolinewidth: 2,
+                    scaleanchor: 'x'
+                },
+                margin: { l: 60, r: 60, t: 40, b: 60 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('plotDiv', data, layout, { responsive: true });
+        }
+
+        function generateScatter3D(funcStr, xMin, xMax, yMin, yMax, zMin, zMax) {
+            var step = (xMax - xMin) / 12;
+            var xVals = [], yVals = [], zVals = [], colors = [];
+
+            for (var x = xMin; x <= xMax; x += step) {
+                for (var y = yMin; y <= yMax; y += step) {
+                    for (var z = zMin; z <= zMax; z += step) {
+                        try {
+                            var val = evaluateFunction(funcStr, x, y, z);
+                            if (isFinite(val)) {
+                                xVals.push(x);
+                                yVals.push(y);
+                                zVals.push(z);
+                                colors.push(val);
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            var data = [{
+                type: 'scatter3d',
+                mode: 'markers',
+                x: xVals,
+                y: yVals,
+                z: zVals,
+                marker: {
+                    size: 4,
+                    color: colors,
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    colorbar: {
+                        title: 'f(x,y,z)',
+                        titleside: 'right'
+                    }
+                }
+            }];
+
+            var layout = {
+                scene: {
+                    xaxis: { title: 'x', gridcolor: '#ddd', showgrid: true },
+                    yaxis: { title: 'y', gridcolor: '#ddd', showgrid: true },
+                    zaxis: { title: 'z', gridcolor: '#ddd', showgrid: true }
+                },
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('plotDiv', data, layout, { responsive: true });
+        }
+
+        updatePresets();
+        updateInfoText();
+        updateDomainRange();
+        generatePlot();
+    </script>
+</body>
+</html>
